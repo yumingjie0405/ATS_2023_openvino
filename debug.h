@@ -2,7 +2,7 @@
 //                          FIXME:临场调试选项
 //---------------------------------------------------------------------------//
 
-//#define DETECT_RED  //红色检测，不启用默认为蓝色检测
+#define DETECT_RED  //红色检测，不启用默认为蓝色检测
 
 #define IGNORE_ENGINEER             //是否忽略工程
 #define IGNORE_NPC                  //是否忽略建筑物与哨兵
@@ -51,7 +51,7 @@
 
 #define PRINT_TARGET_INFO //是否输出目标信息
 
-// #define USING_PREDICT           //是否启用预测
+ #define USING_PREDICT           //是否启用预测
 
 #define USING_SPIN_DETECT //是否检测陀螺
 

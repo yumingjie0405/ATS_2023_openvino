@@ -312,7 +312,8 @@ bool Autoaim::run(TaskData &src, VisionData &data) {
     //若为前哨站吊射模式,直接截取图像中间部分进行处理
 
 #ifdef USING_IMU
-    Eigen::Matrix3d rmat_imu = src.quat.toRotationMatrix();
+//    Eigen::Matrix3d rmat_imu = src.quat.toRotationMatrix();
+    Eigen::Matrix3d rmat_imu = Eigen::Matrix3d::Identity();
     auto vec = rotationMatrixToEulerAngles(rmat_imu);
     // cout<<"Euler : "<<vec[0] * 180.f / CV_PI<<" "<<vec[1] * 180.f / CV_PI<<" "<<vec[2] * 180.f / CV_PI<<endl;
 #else
@@ -325,6 +326,7 @@ bool Autoaim::run(TaskData &src, VisionData &data) {
         double bullet_speed;
         if (abs(src.bullet_speed - last_bullet_speed) < 0.5 || abs(src.bullet_speed - last_bullet_speed) > 1.5) {
             bullet_speed = src.bullet_speed;
+            cout<< "bullet_speed: "<<bullet_speed<<endl;
             predictor.setBulletSpeed(bullet_speed);
             coordsolver.setBulletSpeed(bullet_speed);
             last_bullet_speed = bullet_speed;

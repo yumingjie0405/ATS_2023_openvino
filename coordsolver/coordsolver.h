@@ -68,7 +68,7 @@ private:
 
     double bullet_speed = 28;            
     // double bullet_speed = 16;            //TODO:弹速可变
-    const double k = 0.01903;                //25°C,1atm,小弹丸
+    const double k = 0.01903;                //25°C,1atm,小弹丸 阻力系数通过实验得到
     // const double k = 0.000556;                //25°C,1atm,大弹丸
     // const double k = 0.000530;                //25°C,1atm,发光大弹丸
     const double g = 9.781;

@@ -10,7 +10,7 @@ const string SERIAL_ID = "1a86/7523/264";
 //const string SERIAL_ID = "1a86/7523/340";
 // const string SERIAL_ID = "10c4/ea60/100";
 // const string SERIAL_ID_IMU = "1a86/7523/264";
-const int BAUD = 115200 * 2;
+const int BAUD = 115200 * 2 ;
 // const int BAUD_IMU = 460800;
 
 int main(int argc, char *argv[]) {

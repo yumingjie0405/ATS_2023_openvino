@@ -416,7 +416,7 @@ bool SerialPort::getGyro(unsigned char *data) {
     gyro[1] = exchange_data(f2);
     gyro[2] = exchange_data(f3);
 
-     fmt::print(fmt::fg(fmt::color::white), "gyro: {} {} {} \n", gyro[0], gyro[1], gyro[2]);
+//     fmt::print(fmt::fg(fmt::color::white), "gyro: {} {} {} \n", gyro[0], gyro[1], gyro[2]);
     return true;
 }
 
