@@ -49,9 +49,9 @@ bool producer(Factory<TaskData> &factory, MessageFilter<MCUData> &receive_factor
 #endif //USING_USB_CAMERA
 
 #ifdef USING_VIDEO
-    sleep(6);//防止网络加载完成前视频开始播放
+    sleep(10);//防止网络加载完成前视频开始播放
     // VideoCapture cap("/home/tup/Desktop/TUP-InfantryVision-2022-buff/RH.avi");
-    VideoCapture cap("/home/tup/sample.avi");
+    VideoCapture cap("/home/ymj/Desktop/TUP-InfantryVision-2022/video_test/armor_red.mp4");
 #endif //USING_VIDEO
 
     fmt::print(fmt::fg(fmt::color::green), "[CAMERA] Set param finished\n");

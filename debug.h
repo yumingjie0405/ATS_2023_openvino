@@ -4,8 +4,8 @@
 
 #define DETECT_RED  //红色检测，不启用默认为蓝色检测
 
-#define IGNORE_ENGINEER             //是否忽略工程
-#define IGNORE_NPC                  //是否忽略建筑物与哨兵
+//#define IGNORE_ENGINEER             //是否忽略工程
+//#define IGNORE_NPC                  //是否忽略建筑物与哨兵
 
 //FIXME: RECORD_DATA未完成
 // #define SAVE_VIDEO               // Save video
@@ -45,13 +45,13 @@
 //                              INFO及预测相关选项
 //---------------------------------------------------------------------------//
 
-#define USING_ROI   //Using roi
+//#define USING_ROI   //Using roi
 
 // #define PRINT_LATENCY //输出运行时
 
 #define PRINT_TARGET_INFO //是否输出目标信息
 
- #define USING_PREDICT           //是否启用预测
+#define USING_PREDICT           //是否启用预测
 
 #define USING_SPIN_DETECT //是否检测陀螺
 
