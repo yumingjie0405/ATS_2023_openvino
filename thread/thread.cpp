@@ -17,7 +17,7 @@ bool producer(Factory<TaskData> &factory, MessageFilter<MCUData> &receive_factor
     // 开始采集帧
     DaHeng.SetStreamOn();
     // 设置曝光事件
-    DaHeng.SetExposureTime(3500);
+    DaHeng.SetExposureTime(2000);
     // 设置1
     DaHeng.SetGAIN(3, 16);
     // 是否启用自动白平衡7

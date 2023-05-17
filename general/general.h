@@ -25,8 +25,8 @@
 using namespace std;
 using namespace cv;
 
- const string camera_name = "KE0200110076";  // 哨兵下云台
-//const string camera_name = "KE0200110078";     // 步兵（4号)
+// const string camera_name = "KE0200110076";  // 哨兵下云台
+const string camera_name = "KE0200110078";     // 步兵（4号)
 // const string camera_name = "KE0200110074";  // 步兵（5号）
 // const string camera_name = "KE0200110073";  // 英雄
 // const string camera_name = "MV_Sentry";     // 哨兵上云台
@@ -86,3 +86,5 @@ Eigen::Vector3d rotationMatrixToEulerAngles(Eigen::Matrix3d &R);
 Eigen::Vector3d calcDeltaEuler(Eigen::Vector3d euler1, Eigen::Vector3d euler2);
 Eigen::AngleAxisd eulerToAngleAxisd(Eigen::Vector3d euler);
 Eigen::Matrix3d eulerToRotationMatrix(Eigen::Vector3d &theta);
+// 计算两点之间的距离
+float distance(const cv::Point2f &p1, const cv::Point2f &p2);

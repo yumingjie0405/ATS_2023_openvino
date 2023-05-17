@@ -274,6 +274,7 @@ int Autoaim::chooseTargetID(vector<Armor> &armors, int timestamp) {
     //若检测到危险距离内的英雄直接退出循环
     //若检测到存在上次击打目标,时间较短,且该目标运动较小,则将其选为候选目标,若遍历结束未发现危险距离内的英雄则将其ID选为目标ID.
     for (auto armor: armors) {
+
         //FIXME:该处需根据兵种修改
         //若视野中存在英雄且距离小于危险距离，直接选为目标
         if (armor.id == 1 && armor.center3d_world.norm() <= hero_danger_zone) {
@@ -326,7 +327,7 @@ bool Autoaim::run(TaskData &src, VisionData &data) {
         double bullet_speed;
         if (abs(src.bullet_speed - last_bullet_speed) < 0.5 || abs(src.bullet_speed - last_bullet_speed) > 1.5) {
             bullet_speed = src.bullet_speed;
-            cout<< "bullet_speed: "<<bullet_speed<<endl;
+            cout << "bullet_speed: " << bullet_speed << endl;
             predictor.setBulletSpeed(bullet_speed);
             coordsolver.setBulletSpeed(bullet_speed);
             last_bullet_speed = bullet_speed;
@@ -437,6 +438,9 @@ bool Autoaim::run(TaskData &src, VisionData &data) {
         for (auto apex: armor.apex2d)
             apex_sum += apex;
         armor.center2d = apex_sum / 4.f;
+
+        // 计算每个装甲板的quad_aspect_ratio
+        computeAspectRatio(armor);
         //生成装甲板旋转矩形和ROI
         std::vector<Point2f> points_pic(armor.apex2d, armor.apex2d + 4);
         RotatedRect points_pic_rrect = minAreaRect(points_pic);
@@ -476,18 +480,27 @@ bool Autoaim::run(TaskData &src, VisionData &data) {
             pnp_method = SOLVEPNP_IPPE;
         TargetType target_type = SMALL;
         //计算长宽比,确定装甲板类型
-        auto apex_wh_ratio = max(points_pic_rrect.size.height, points_pic_rrect.size.width) /
-                             min(points_pic_rrect.size.height, points_pic_rrect.size.width);
+//        auto apex_wh_ratio = max(points_pic_rrect.size.height, points_pic_rrect.size.width) /
+//                             min(points_pic_rrect.size.height, points_pic_rrect.size.width);
         //若大于长宽阈值或为哨兵、英雄装甲板
         //FIXME:若存在平衡步兵需要对此处步兵装甲板类型进行修改
+        //计算rect长宽比例计算平衡补兵
         if (object.cls == 0 || object.cls == 1)
             target_type = BIG;
-        else if (object.cls == 2 || object.cls == 3 || object.cls == 4 || object.cls == 5 || object.cls == 6)
+        else if (object.cls == 2 || object.cls == 6)
             target_type = SMALL;
-        else if (apex_wh_ratio > armor_type_wh_thres)
-            target_type = BIG;
+        else if (object.cls == 3 || object.cls == 4 || object.cls == 5) {
+            fmt::print(fmt::fg(fmt::color::orange_red), "Target_aspect_ratio: {} \n", armor.quad_aspect_ratio);
+            if (armor.quad_aspect_ratio > armor_type_wh_thres) {
+                target_type = BIG;
+            } else {
+                target_type = SMALL;
+            }
+        }
+
         // for (auto pic : points_pic)
         //     cout<<pic<<endl;
+
         auto pnp_result = coordsolver.pnp(points_pic, rmat_imu, target_type, pnp_method);
         //防止装甲板类型出错导致解算问题，距离过大或出现NAN直接跳过该装甲板
         if (pnp_result.armor_cam.norm() > 13 ||
@@ -495,7 +508,8 @@ bool Autoaim::run(TaskData &src, VisionData &data) {
             isnan(pnp_result.armor_cam[1]) ||
             isnan(pnp_result.armor_cam[2]))
             continue;
-
+        putText(src.img, fmt::format("TargetID:{}", object.cls), {10, 125}, FONT_HERSHEY_SIMPLEX, 1, {45, 255, 5});
+        putText(src.img, fmt::format("TargetType:{}", armor.type), {10, 150}, FONT_HERSHEY_SIMPLEX, 1, {99, 55, 255});
         armor.type = target_type;
         armor.center3d_world = pnp_result.armor_world;
         armor.center3d_cam = pnp_result.armor_cam;
@@ -505,6 +519,9 @@ bool Autoaim::run(TaskData &src, VisionData &data) {
     }
     //若无合适装甲板
     if (armors.empty()) {
+//        putText(src.img, fmt::format( {},armor.type), {10, 125}, FONT_HERSHEY_SIMPLEX, 1, {0, 255, 255});
+
+
 #ifdef SHOW_AIM_CROSS
         line(src.img, Point2f(src.img.size().width / 2, 0), Point2f(src.img.size().width / 2, src.img.size().height),
              Scalar(0, 255, 0), 1);
@@ -819,13 +836,10 @@ bool Autoaim::run(TaskData &src, VisionData &data) {
         else
             is_target_switched = false;
 #ifdef USING_PREDICT
-        if (is_target_switched)
-        {
+        if (is_target_switched) {
             predictor.initParam(predictor_param_loader);
             aiming_point = target.center3d_cam;
-        }
-        else
-        {
+        } else {
             auto aiming_point_world = predictor.predict(target.center3d_world, src.timestamp);
             // aiming_point = aiming_point_world;
             aiming_point = coordsolver.worldToCam(aiming_point_world, rmat_imu);
@@ -860,14 +874,11 @@ bool Autoaim::run(TaskData &src, VisionData &data) {
 
 #ifdef USING_PREDICT
         //目前类别预测不是十分稳定,若之后仍有问题，可以考虑去除类别判断条件
-        if (is_target_switched)
-        {
+        if (is_target_switched) {
             predictor.initParam(predictor_param_loader);
             // cout<<"initing"<<endl;
             aiming_point = target.center3d_cam;
-        }
-        else
-        {
+        } else {
             auto aiming_point_world = predictor.predict(target.center3d_world, src.timestamp);
             // aiming_point = aiming_point_world;
             aiming_point = coordsolver.worldToCam(aiming_point_world, rmat_imu);
@@ -927,6 +938,7 @@ bool Autoaim::run(TaskData &src, VisionData &data) {
 
 #ifdef SHOW_ALL_ARMOR
     for (auto armor: armors) {
+//        computeAspectRatio(armor);
         putText(src.img, fmt::format("{:.2f}", armor.conf), armor.apex2d[3], FONT_HERSHEY_SIMPLEX, 1, {0, 255, 0}, 2);
         if (armor.color == 0)
             putText(src.img, fmt::format("B{}", armor.id), armor.apex2d[0], FONT_HERSHEY_SIMPLEX, 1, {255, 100, 0}, 2);
@@ -940,6 +952,8 @@ bool Autoaim::run(TaskData &src, VisionData &data) {
                     2);
         for (int i = 0; i < 4; i++)
             line(src.img, armor.apex2d[i % 4], armor.apex2d[(i + 1) % 4], {0, 255, 0}, 1);
+        putText(src.img, fmt::format("ratio{:.2}", armor.quad_aspect_ratio), armor.apex2d[2], FONT_HERSHEY_SIMPLEX, 1,
+                {255, 100, 255}, 2);
         rectangle(src.img, armor.roi, {255, 0, 255}, 1);
         auto armor_center = coordsolver.reproject(armor.center3d_cam);
         circle(src.img, armor_center, 4, {0, 0, 255}, 2);
@@ -968,6 +982,7 @@ bool Autoaim::run(TaskData &src, VisionData &data) {
     putText(src.img, fmt::format("PITCH: {:.4f}", angle[1]), {10, 75}, FONT_HERSHEY_SIMPLEX, 1, {0, 255, 255});
     putText(src.img, fmt::format("DIS: {:.4f}", float(target.center3d_cam.norm())), {10, 100,}, FONT_HERSHEY_SIMPLEX, 1,
             {10, 45, 204});
+
 #endif //SHOW_FPS
 
 #ifdef SHOW_IMG
@@ -1014,4 +1029,16 @@ bool Autoaim::run(TaskData &src, VisionData &data) {
     data = {(float) angle[1], (float) angle[0], (float) target.center3d_cam.norm(), is_target_switched, 1,
             is_target_spinning, 0};
     return true;
+}
+
+void computeAspectRatio(Armor &armor) {
+    float side1 = distance(armor.apex2d[0], armor.apex2d[1]);
+    float side2 = distance(armor.apex2d[1], armor.apex2d[2]);
+    float side3 = distance(armor.apex2d[2], armor.apex2d[3]);
+    float side4 = distance(armor.apex2d[3], armor.apex2d[0]);
+
+    float longer_side = std::max({side1, side2, side3, side4});
+    float shorter_side = std::min({side1, side2, side3, side4});
+
+    armor.quad_aspect_ratio = longer_side / shorter_side;
 }

@@ -18,7 +18,7 @@ ArmorTracker::ArmorTracker(Armor src, int src_timestamp)
 //TODO:改变目标距中心点计算方式,可以考虑通过相机内参,xyz偏移量,yaw,pitch偏移量计算出目前瞄准点
 /**
  * @brief 计算该Tracker作为目标的可能性分数
- * 
+ * 根据装甲板的旋转矩形和面积计算出一个分数，该分数可以用于评估击打目标的可能性或效果
  * @return true 
  * @return false 
  */

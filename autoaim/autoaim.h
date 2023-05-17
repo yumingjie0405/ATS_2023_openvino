@@ -12,7 +12,28 @@
 
 enum SpinHeading {UNKNOWN, CLOCKWISE, COUNTER_CLOCKWISE};
 enum Color {BLUE,RED};
-
+// 为 TargetType 创建一个 formatter 特化
+template <>
+struct fmt::formatter<TargetType> : fmt::formatter<std::string>
+{
+    template <typename FormatContext>
+    auto format(TargetType target_type, FormatContext& ctx)
+    {
+        std::string type_name;
+        switch (target_type)
+        {
+            case TargetType::BIG:
+                type_name = "BIG";
+                break;
+            case TargetType::SMALL:
+                type_name = "SMALL";
+                break;
+            default:
+                type_name = "UNKNOWN";
+        }
+        return formatter<std::string>::format(type_name, ctx);
+    }
+};
 class Autoaim
 {
 public:

@@ -269,3 +269,9 @@ double rangedAngleRad(double &angle)
     }
     return angle;
 }
+
+// 计算两点之间的距离
+float distance(const cv::Point2f &p1, const cv::Point2f &p2) {
+    return std::sqrt(std::pow(p1.x - p2.x, 2) + std::pow(p1.y - p2.y, 2));
+}
+

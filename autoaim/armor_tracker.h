@@ -11,6 +11,7 @@
 using namespace cv;
 using namespace std;
 
+
 struct Armor
 {
     int id;
@@ -27,7 +28,7 @@ struct Armor
     Eigen::Vector3d center3d_world;
     Eigen::Vector3d euler;
     Eigen::Vector3d predict;
-
+    float quad_aspect_ratio;
     TargetType type;
 };
 
@@ -53,4 +54,7 @@ public:
     ArmorTracker(Armor src,int src_timestamp);
     bool update(Armor new_armor, int new_timestamp);
     bool calcTargetScore();
+
 };
+// 计算装甲板的长宽比例
+void computeAspectRatio(Armor &armor);
