@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
 #endif //SAVE_MAIN_LOG
 
     auto time_start = std::chrono::steady_clock::now();
-    Factory<TaskData> task_factory(3);
+    Factory<TaskData> task_factory(5);
     Factory<VisionData> data_transmit_factory(5);
     MessageFilter<MCUData> data_receiver(100);
     SerialPort serial(SERIAL_ID, BAUD);

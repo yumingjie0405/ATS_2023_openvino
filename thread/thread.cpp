@@ -109,6 +109,7 @@ bool producer(Factory<TaskData> &factory, MessageFilter<MCUData> &receive_factor
     data.open(data_file_pth, std::ofstream::app);
     auto writer = cv::VideoWriter(video_file_pth, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 60.0, cv::Size(width, height));    // Avi format
 #endif //RECORD_DATA
+
     while (1) {
         TaskData src;
         auto time_cap = std::chrono::steady_clock::now();
