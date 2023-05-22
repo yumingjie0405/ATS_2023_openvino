@@ -93,30 +93,33 @@ bool SerialPort::get_Mode() {
     if (result == -1)
         return false;
 
+    // 清除缓冲区
+    memset(rdata, 0, sizeof(rdata));
+
+    // 从串行端口读取数据
+    bytes = read(fd, rdata, buff_size);
+    //fmt::print(fmt::fg(fmt::color(fmt::color::orange)), "bytes_num: {} \n", bytes);
     if (bytes == 0) {
-        //    cout << "缓冲区为空" << endl;
+        cout << "缓冲区为空" << endl;
         return false;
     }
-    // bytes = read(fd, rdata, 49);
-    bytes = read(fd, rdata, 54);
-    // bytes = read(fd, rdata, 45);
-    // cout<<bytes<<endl;
-// TODO && Verify_CRC8_Check_Sum
-    if (rdata[0] == 0xD4) {
+
+    int startIndex = -1;
+    int endIndex = -1;
+
+
+    if (bytes < buff_size) {
+        // 数据不足以填充缓冲区
+        return false;
+    }
+
+    if (rdata[0] == 0xD4 && rdata[buff_size - 1] == 0xD5) { //
         mode = rdata[1];
+//        fmt::print(fmt::fg(fmt::color(fmt::color::orange)), "mode: {} \n", mode);
         getSpeed(&rdata[5]);
         getColor(&rdata[9]);
         getQuat(&rdata[13]);
-        getGyro(&rdata[19]);
-        getAcc(&rdata[31]);
-//        Verify_CRC16_Check_Sum(rdata, 54);
-        //TODO:接收下位机发送的弹速
     }
-    // mode = rdata[0];
-    // getQuat(&rdata[1]);
-    // getGyro(&rdata[17]);
-    // getAcc(&rdata[29]);
-    // getSpeed(&rdata[41]);
     return true;
 }
 
@@ -377,7 +380,6 @@ bool SerialPort::getColor(unsigned char *data) {
         fmt::print(fmt::fg(fmt::color::red), "收到的color 不是 0 或 1 \n");
         return false;
     }
-    fmt::print(fmt::fg(fmt::color::white), "color: {} \n", color);
     return true;
 }
 
@@ -387,17 +389,55 @@ bool SerialPort::getColor(unsigned char *data) {
  * @param data 四元数首地址指针
  * @return
  */
+//bool SerialPort::getQuat(unsigned char *data) {
+//    unsigned char *f1 = &data[0];
+//    unsigned char *f2 = &data[4];
+//    unsigned char *f3 = &data[8];
+//    unsigned char *f4 = &data[12];
+//
+//    quat[0] = exchange_data(f1);
+//    quat[1] = exchange_data(f2);
+//    quat[2] = exchange_data(f3);
+//    quat[3] = exchange_data(f4);
+//    return true;
+//}
 bool SerialPort::getQuat(unsigned char *data) {
     unsigned char *f1 = &data[0];
     unsigned char *f2 = &data[4];
     unsigned char *f3 = &data[8];
     unsigned char *f4 = &data[12];
 
-    quat[0] = exchange_data(f1);
-    quat[1] = exchange_data(f2);
-    quat[2] = exchange_data(f3);
-    quat[3] = exchange_data(f4);
-     fmt::print(fmt::fg(fmt::color::white), "quat: {} {} {} {} \n", quat[0], quat[1], quat[2], quat[3]);
+    // 存储四元数分量
+    float quat_raw[4] = {exchange_data(f1), exchange_data(f2), exchange_data(f3), exchange_data(f4)};
+
+    // 判断是否存在无效数据或错误数据
+    bool valid_data = true;
+    for (int i = 0; i < 4; i++) {
+        if (fabs(quat_raw[i]) > 1.0) {
+            valid_data = false;
+            fmt::print(fmt::fg(fmt::color::red), "-----------存在异常quat------------\n");
+            break;
+        }
+    }
+
+    // 如果数据有效，则进行中位数滤波
+    if (valid_data) {
+        // 对四元数分量进行排序
+        std::sort(quat_raw, quat_raw + 4);
+
+        // 选取中间值作为最终结果
+        quat[0] = quat_raw[1];
+        quat[1] = quat_raw[2];
+        quat[2] = quat_raw[3];
+        quat[3] = quat_raw[0];
+    } else {
+        // 数据无效，清空四元数
+        quat[0] = 0.0;
+        quat[1] = 0.0;
+        quat[2] = 0.0;
+        quat[3] = 0.0;
+    }
+
     return true;
 }
 
@@ -434,7 +474,6 @@ bool SerialPort::getAcc(unsigned char *data) {
     acc[0] = exchange_data(f1);
     acc[1] = exchange_data(f2);
     acc[2] = exchange_data(f3);
-    // fmt::print(fmt::fg(fmt::color::white), "acc: {} {} {} \n", acc[0], acc[1], acc[2]);
     return true;
 }
 
@@ -449,7 +488,6 @@ bool SerialPort::getSpeed(unsigned char *data) {
 
     bullet_speed = exchange_data(f1);
 
-     fmt::print(fmt::fg(fmt::color::white), "speed: {} \n", bullet_speed);
     return true;
 }
 //////////////////////////////////////////////

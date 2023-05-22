@@ -86,7 +86,7 @@ add_executable(run
         ${PROJECT_SOURCE_DIR}/serial/wt61pc.h
         ${PROJECT_SOURCE_DIR}/serial/CRC_Check.cpp
         ${PROJECT_SOURCE_DIR}/serial/CRC_Check.h
-        )
+        autoaim/detector/tensorrt_infer.cpp)
 
 
 

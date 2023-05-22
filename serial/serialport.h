@@ -83,6 +83,7 @@ typedef struct
 class SerialPort
 {
 public:
+    int buff_size = 30;
     atomic_bool need_init = true;
     Device device;
     int fd;      //串口号

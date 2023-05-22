@@ -6,8 +6,10 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 find_package(OpenCV 4 REQUIRED)
 find_package(InferenceEngine REQUIRED)
 find_package(Eigen3 REQUIRED)
-find_package(yaml-cpp REQUIRED)
 
+find_package(yaml-cpp REQUIRED)
+#添加此行以启用 yaml-cpp 的已弃用特性
+add_definitions(-DYAMLCPP_USE_DEPRECATED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(${EIGEN3_INCLUDE_DIRS})
 include_directories(${InferenceEngine_INCLUDE_DIRS})

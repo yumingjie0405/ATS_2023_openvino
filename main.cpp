@@ -10,7 +10,7 @@ const string SERIAL_ID = "1a86/7523/264";
 //const string SERIAL_ID = "1a86/7523/340";
 // const string SERIAL_ID = "10c4/ea60/100";
 // const string SERIAL_ID_IMU = "1a86/7523/264";
-const int BAUD = 115200 * 2 ;
+const int BAUD = 115200 ;
 // const int BAUD_IMU = 460800;
 
 int main(int argc, char *argv[]) {
@@ -37,6 +37,7 @@ int main(int argc, char *argv[]) {
 
 #ifdef USING_IMU_C_BOARD
     std::thread serial_watcher(&serialWatcher, ref(serial));
+
     std::thread receiver(&dataReceiver, ref(serial), ref(data_receiver), time_start);
 #ifdef SAVE_MAIN_LOG
     LOG(INFO) << "[MAIN] serial_watcher(with IMU) start!"<<endl;

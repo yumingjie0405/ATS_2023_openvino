@@ -315,7 +315,7 @@ bool Autoaim::run(TaskData &src, VisionData &data) {
 #ifdef USING_IMU
 //    Eigen::Matrix3d rmat_imu = src.quat.toRotationMatrix();
     Eigen::Matrix3d rmat_imu = Eigen::Matrix3d::Identity();
-    auto vec = rotationMatrixToEulerAngles(rmat_imu);
+//    auto vec = rotationMatrixToEulerAngles(rmat_imu);
     // cout<<"Euler : "<<vec[0] * 180.f / CV_PI<<" "<<vec[1] * 180.f / CV_PI<<" "<<vec[2] * 180.f / CV_PI<<endl;
 #else
     Eigen::Matrix3d rmat_imu = Eigen::Matrix3d::Identity();
@@ -325,7 +325,7 @@ bool Autoaim::run(TaskData &src, VisionData &data) {
     //设置弹速,若弹速大于10m/s值,且弹速变化大于0.5m/s则更新
     if (src.bullet_speed > 10) {
         double bullet_speed;
-        if (abs(src.bullet_speed - last_bullet_speed) < 0.5 || abs(src.bullet_speed - last_bullet_speed) > 1.5) {
+        if (abs(src.bullet_speed - last_bullet_speed) > 1) {  //src.bullet_speed - last_bullet_speed) < 0.5 ||
             bullet_speed = src.bullet_speed;
             cout << "bullet_speed: " << bullet_speed << endl;
             predictor.setBulletSpeed(bullet_speed);
@@ -485,17 +485,18 @@ bool Autoaim::run(TaskData &src, VisionData &data) {
         //若大于长宽阈值或为哨兵、英雄装甲板
         //FIXME:若存在平衡步兵需要对此处步兵装甲板类型进行修改
         //计算rect长宽比例计算平衡补兵
+        computeAspectRatio(armor);
         if (object.cls == 0 || object.cls == 1)
             target_type = BIG;
         else if (object.cls == 2 || object.cls == 6)
             target_type = SMALL;
         else if (object.cls == 3 || object.cls == 4 || object.cls == 5) {
-            fmt::print(fmt::fg(fmt::color::orange_red), "Target_aspect_ratio: {} \n", armor.quad_aspect_ratio);
-            if (armor.quad_aspect_ratio > armor_type_wh_thres) {
-                target_type = BIG;
-            } else {
+//            fmt::print(fmt::fg(fmt::color::orange_red), "Target_aspect_ratio: {} \n", armor.quad_aspect_ratio);
+//            if (armor.quad_aspect_ratio > armor_type_wh_thres) {
+//                target_type = BIG;
+//            } else {
                 target_type = SMALL;
-            }
+//            }
         }
 
         // for (auto pic : points_pic)
@@ -509,7 +510,7 @@ bool Autoaim::run(TaskData &src, VisionData &data) {
             isnan(pnp_result.armor_cam[2]))
             continue;
         putText(src.img, fmt::format("TargetID:{}", object.cls), {10, 125}, FONT_HERSHEY_SIMPLEX, 1, {45, 255, 5});
-        putText(src.img, fmt::format("TargetType:{}", armor.type), {10, 150}, FONT_HERSHEY_SIMPLEX, 1, {99, 55, 255});
+        putText(src.img, fmt::format("TargetType:{}", target_type), {10, 150}, FONT_HERSHEY_SIMPLEX, 1, {99, 55, 255});
         armor.type = target_type;
         armor.center3d_world = pnp_result.armor_world;
         armor.center3d_cam = pnp_result.armor_cam;
@@ -597,6 +598,23 @@ bool Autoaim::run(TaskData &src, VisionData &data) {
             std::multimap<string, ArmorTracker>::iterator best_candidate;
             auto candiadates = trackers_map.equal_range(tracker_key);
             //遍历所有同Key预测器，匹配速度最小且更新时间最近的ArmorTracker
+            /*
+             * 遍历给定的候选目标范围（candiadates），使用迭代器 iter 指向当前候选目标。
+
+计算时间差 delta_t，它是源数据（src.timestamp）与当前候选目标的最后一个时间戳（(*iter).second.last_timestamp）之差。
+
+计算空间距离差 delta_dist，它是当前装甲（armor）在世界坐标系下的中心点与当前候选目标的最后一个装甲在世界坐标系下的中心点之间的欧几里得距离。
+
+计算速度 velocity，它是 delta_dist 除以 delta_t 的结果，然后乘以 1000（将单位从秒转换为毫秒）。
+
+判断条件：如果当前候选目标的最后一个装甲的感兴趣区域（ROI）包含当前装甲的二维中心点，并且delta_t大于0，则执行以下判断操作：
+a. 如果 delta_dist 小于等于 max_delta_dist 和 min_delta_dist，且 delta_t 小于等于 min_delta_t，那么将当前候选目标视为最佳候选目标（best_candidate），并将 is_best_candidate_exist 设置为 true。
+
+如果存在最佳候选目标（is_best_candidate_exist 为 true），则将 min_delta_dist 赋值给变量 velocity，将 min_delta_t 赋值给变量 delta_t，并根据当前装甲（*armor）和源数据时间戳（src.timestamp）更新 best_candidate 的信息。
+
+如果不存在最佳候选目标且当前装甲的颜色不为2，那么创建一个新的 ArmorTracker 对象 tracker，用当前装甲（*armor）和源数据时间戳（src.timestamp）进行初始化。之后，将这个新的追踪器插入到 trackers_map 中，并在 new_armors_cnt_map 中增加相应的计数。
+             *
+             */
             for (auto iter = candiadates.first; iter != candiadates.second; ++iter) {
                 auto delta_t = src.timestamp - (*iter).second.last_timestamp;
                 auto delta_dist = ((*armor).center3d_world - (*iter).second.last_armor.center3d_world).norm();
@@ -845,7 +863,7 @@ bool Autoaim::run(TaskData &src, VisionData &data) {
             aiming_point = coordsolver.worldToCam(aiming_point_world, rmat_imu);
         }
 #else
-        // aiming_point = coordsolver.worldToCam(target.center3d_world,rmat_imu);
+        aiming_point = coordsolver.worldToCam(target.center3d_world,rmat_imu);
         aiming_point = target.center3d_cam;
 #endif //USING_PREDICT
     }
@@ -950,8 +968,11 @@ bool Autoaim::run(TaskData &src, VisionData &data) {
         if (armor.color == 3)
             putText(src.img, fmt::format("P{}", armor.id), armor.apex2d[0], FONT_HERSHEY_SIMPLEX, 1, {255, 100, 255},
                     2);
-        for (int i = 0; i < 4; i++)
-            line(src.img, armor.apex2d[i % 4], armor.apex2d[(i + 1) % 4], {0, 255, 0}, 1);
+        line(src.img, armor.apex2d[0], armor.apex2d[2], {0, 255, 0}, 1);
+        line(src.img, armor.apex2d[1], armor.apex2d[3], {0, 255, 0}, 1);
+
+//        for (int i = 0; i < 4; i++)
+//            line(src.img, armor.apex2d[i % 4], armor.apex2d[(i + 1) % 4], {0, 255, 0}, 1);
         putText(src.img, fmt::format("ratio{:.2}", armor.quad_aspect_ratio), armor.apex2d[2], FONT_HERSHEY_SIMPLEX, 1,
                 {255, 100, 255}, 2);
         rectangle(src.img, armor.roi, {255, 0, 255}, 1);

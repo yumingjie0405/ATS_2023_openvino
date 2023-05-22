@@ -45,6 +45,25 @@ struct TaskData
     Mat img;
     Eigen::Quaterniond quat;
     int timestamp;//单位：ms
+
+//    TaskData(const TaskData& other) {
+//        this->mode = other.mode;
+//        this->bullet_speed = other.bullet_speed;
+//        this->img = other.img.clone();
+//        this->quat = other.quat;
+//        this->timestamp = other.timestamp;
+//    }
+//
+//    TaskData& operator=(const TaskData& other) {
+//        if (this != &other) {
+//            this->mode = other.mode;
+//            this->bullet_speed = other.bullet_speed;
+//            this->img = other.img.clone();
+//            this->quat = other.quat;
+//            this->timestamp = other.timestamp;
+//        }
+//        return *this;
+//    }
 };
 
 struct GridAndStride

@@ -120,7 +120,7 @@ PnPInfo CoordSolver::pnp(const std::vector<Point2f> &points_pic, const Eigen::Ma
     Eigen::Matrix3d rmat_eigen;
     Eigen::Vector3d R_center_world = {0, -0.7, -0.05};
     Eigen::Vector3d tvec_eigen;
-    Eigen::Vector3d coord_camera;
+//    Eigen::Vector3d coord_camera;
 
     solvePnP(points_world, points_pic, intrinsic, dis_coeff, rvec, tvec, false, method);
 

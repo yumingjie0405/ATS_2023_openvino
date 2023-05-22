@@ -1,4 +1,13 @@
+/*
+生产者线程（producer）: 从摄像头或视频文件中捕获图像帧，并将其添加到任务工厂（Factory<TaskData>）中。此外，它还从下位机接收数据（如模式、四元数等）并将它们与图像帧一起存储在TaskData结构中。
+消费者线程（consumer）: 从任务工厂中获取TaskData对象并根据当前模式（自瞄、前哨站装甲板识别、小能量机关、大能量机关）执行相应操作。
+                     处理后的结果被存储在VisionData对象中，并添加到传输工厂（Factory<VisionData>）以供进一步使用。
+数据发送线程（dataTransmitter）: 从传输工厂（Factory<VisionData>）中获取处理过的数据并通过串口发送给其他设备。
+数据接收线程（dataReceiver）: 从串口接收下位机数据（模式、四元数、子弹速度等），然后将其添加到消息过滤器（MessageFilter<MCUData>）中以便其他线程使用。
+ */
+
 #include "thread.h"
+
 
 /**
  * @brief 生产者线程
@@ -103,12 +112,10 @@ bool producer(Factory<TaskData> &factory, MessageFilter<MCUData> &receive_factor
     while (1) {
         TaskData src;
         auto time_cap = std::chrono::steady_clock::now();
-
 #ifdef USING_DAHENG
         auto DaHeng_stauts = DaHeng.GetMat(src.img);
         if (!DaHeng_stauts) {
             fmt::print(fmt::fg(fmt::color::red), "[CAMERA] GetMat false return\n");
-
 #ifdef SAVE_LOG_ALL
             LOG(ERROR) << "[CAMERA] GetMat false return";
 #endif //SAVE_LOG_ALL
@@ -116,9 +123,8 @@ bool producer(Factory<TaskData> &factory, MessageFilter<MCUData> &receive_factor
             goto start_get_img;
         }
         src.timestamp = (int) (std::chrono::duration<double, std::milli>(time_cap - time_start).count());
-        // src.timestamp = DaHeng.Get_TIMESTAMP();
+//        src.timestamp = DaHeng.Get_TIMESTAMP();
 #endif //USING_DAHENG
-
 
 #ifdef USING_VIDEO
         cap >> src.img;
@@ -126,19 +132,16 @@ bool producer(Factory<TaskData> &factory, MessageFilter<MCUData> &receive_factor
         // sleep(0.02);
         waitKey(33.3);
 #endif //USING_VIDEO
-
 #ifdef USING_USB_CAMERA
         cap >> src.img;
         src.timestamp = (int)(std::chrono::duration<double,std::milli>(time_cap - time_start).count());
 #endif //USING_USB_CAMERA
-
         if (src.img.empty()) {
 #ifdef SAVE_LOG_ALL
             LOG(ERROR) << "[CAMERA] Get empty image";
 #endif //SAVE_LOG_ALL
             continue;
         }
-
 #ifdef SAVE_VIDEO
         frame_cnt++;
         if(frame_cnt % 10 == 0)
@@ -152,7 +155,6 @@ bool producer(Factory<TaskData> &factory, MessageFilter<MCUData> &receive_factor
             write_video = std::async(std::launch::async, [&, src](){writer.write(src.img);});
         }
 #endif //SAVE_VIDEO
-
 #ifndef DEBUG_WITHOUT_COM
         //获取下位机数据
         MCUData mcu_status;
@@ -162,10 +164,8 @@ bool producer(Factory<TaskData> &factory, MessageFilter<MCUData> &receive_factor
         src.mode = mcu_status.mode;
         src.bullet_speed = mcu_status.bullet_speed;
 #endif
-
-
-        //用于辅助标注
         factory.produce(src);
+
     }
     return true;
 }
@@ -185,7 +185,6 @@ bool consumer(Factory<TaskData> &task_factory, Factory<VisionData> &transmit_fac
 
         task_factory.consume(dst);
         mode = dst.mode;
-
 #ifdef DEBUG_WITHOUT_COM
         mode = 1;
         // dst.mode = mode;
@@ -259,6 +258,7 @@ bool dataTransmitter(SerialPort &serial, Factory<VisionData> &transmit_factory) 
  */
 bool dataReceiver(SerialPort &serial, MessageFilter<MCUData> &receive_factory,
                   std::chrono::_V2::steady_clock::time_point time_start) {
+
     while (1) {
         //若串口离线则跳过数据发送
         if (serial.need_init == true) {
@@ -270,20 +270,20 @@ bool dataReceiver(SerialPort &serial, MessageFilter<MCUData> &receive_factory,
         while (!serial.get_Mode());
         auto time_cap = std::chrono::steady_clock::now();
         auto timestamp = (int) (std::chrono::duration<double, std::milli>(time_cap - time_start).count());
-        // cout<<"Quat: "<<serial.quat[0]<<" "<<serial.quat[1]<<" "<<serial.quat[2]<<" "<<serial.quat[3]<<" "<<endl;
-        // Eigen::Quaterniond quat = {serial.quat[0],serial.quat[1],serial.quat[2],serial.quat[3]};
-        //FIXME:注意此处mode设置
+//        cout << "Quat: " << serial.quat[0] << " " << serial.quat[1] << " " << serial.quat[2] << " " << serial.quat[3]
+//             << " " << endl;
         int mode = serial.mode;
+//        fmt::print(fmt::fg(fmt::color(fmt::color::pale_golden_rod)), "mode: {} \n", mode);
         float bullet_speed = serial.bullet_speed;
         int color = serial.color;
         // int mode = 2;
         Eigen::Quaterniond quat = {serial.quat[0], serial.quat[1], serial.quat[2], serial.quat[3]};
-        Eigen::Vector3d acc = {serial.acc[0], serial.acc[1], serial.acc[2]};;
-        Eigen::Vector3d gyro = {serial.gyro[0], serial.gyro[1], serial.gyro[2]};;
-        MCUData mcu_status = {mode, acc, gyro, quat, bullet_speed, color, timestamp};
+//        Eigen::Vector3d acc = {serial.acc[0], serial.acc[1], serial.acc[2]};;
+//        Eigen::Vector3d gyro = {serial.gyro[0], serial.gyro[1], serial.gyro[2]};;
+        MCUData mcu_status = {mode, quat, bullet_speed, color, timestamp};
         receive_factory.produce(mcu_status, timestamp);
-        // Eigen::Vector3d vec = quat.toRotationMatrix().eulerAngles(2,1,0);
-        // cout<<"Euler : "<<vec[0] * 180.f / CV_PI<<" "<<vec[1] * 180.f / CV_PI<<" "<<vec[2] * 180.f / CV_PI<<endl;
+//         Eigen::Vector3d vec = quat.toRotationMatrix().eulerAngles(2,1,0);
+//         cout<<"Euler : "<<vec[0] * 180.f / CV_PI<<" "<<vec[1] * 180.f / CV_PI<<" "<<vec[2] * 180.f / CV_PI<<endl;
         // cout<<"transmitting..."<<endl;
     }
     return true;
@@ -312,15 +312,18 @@ bool serialWatcher(SerialPort &serial) {
         if (access(serial.device.path.c_str(), F_OK) == -1 || serial.need_init) {
             serial.need_init = true;
 #ifdef DEBUG_WITHOUT_COM
-            int now = clock()/CLOCKS_PER_SEC;
-            if (now - last > 10)
-            {
+            int now = clock() / CLOCKS_PER_SEC;
+            if (now - last > 10) {
                 last = now;
                 fmt::print(fmt::fg(fmt::color::orange), "[SERIAL] Warning: You are not using Serial port\n");
             }
             serial.withoutSerialPort();
 #else
-            serial.initSerialPort();
+            bool success = serial.initSerialPort();
+            if (!success) {
+                std::cerr << "Failed to initialize serial port." << std::endl;
+                return -1;
+            }
 #endif //DEBUG_WITHOUT_COM
         }
     }
