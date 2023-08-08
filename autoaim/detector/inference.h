@@ -35,7 +35,6 @@ public:
     bool detect(Mat &src,vector<ArmorObject>& objects);
     bool initModel(string path);
 private:
-
     Core ie;
     CNNNetwork network;                // 网络
     ExecutableNetwork executable_network;       // 可执行网络
@@ -43,6 +42,5 @@ private:
     MemoryBlob::CPtr moutput;
     string input_name;
     string output_name;
-    
     Eigen::Matrix<float,3,3> transfrom_matrix;
 };

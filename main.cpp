@@ -14,6 +14,7 @@ const int BAUD = 115200 ;
 // const int BAUD_IMU = 460800;
 
 int main(int argc, char *argv[]) {
+
 #ifdef SAVE_MAIN_LOG
     google::InitGoogleLogging(argv[0]);
     FLAGS_alsologtostderr = false;  //除了日志文件之外是否需要标准输出

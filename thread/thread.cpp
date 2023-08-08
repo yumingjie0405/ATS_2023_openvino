@@ -26,7 +26,7 @@ bool producer(Factory<TaskData> &factory, MessageFilter<MCUData> &receive_factor
     // 开始采集帧
     DaHeng.SetStreamOn();
     // 设置曝光事件
-    DaHeng.SetExposureTime(2000);
+    DaHeng.SetExposureTime(3000);
     // 设置1
     DaHeng.SetGAIN(3, 16);
     // 是否启用自动白平衡7
@@ -59,8 +59,8 @@ bool producer(Factory<TaskData> &factory, MessageFilter<MCUData> &receive_factor
 
 #ifdef USING_VIDEO
     sleep(10);//防止网络加载完成前视频开始播放
-    // VideoCapture cap("/home/tup/Desktop/TUP-InfantryVision-2022-buff/RH.avi");
-    VideoCapture cap("/home/ymj/Desktop/TUP-InfantryVision-2022/video_test/armor_red.mp4");
+     VideoCapture cap("/home/ymj/Desktop/TUP-InfantryVision-2022/video_test/energy_red.mp4");
+//    VideoCapture cap("/home/ymj/Desktop/TUP-InfantryVision-2022/video_test/armor_red.mp4");
 #endif //USING_VIDEO
 
     fmt::print(fmt::fg(fmt::color::green), "[CAMERA] Set param finished\n");
@@ -130,14 +130,15 @@ bool producer(Factory<TaskData> &factory, MessageFilter<MCUData> &receive_factor
 #ifdef USING_VIDEO
         cap >> src.img;
         src.timestamp = (int)(std::chrono::duration<double,std::milli>(time_cap - time_start).count());
-        // sleep(0.02);
-        waitKey(33.3);
+         sleep(0.02);
+//        waitKey(1);
 #endif //USING_VIDEO
 #ifdef USING_USB_CAMERA
         cap >> src.img;
         src.timestamp = (int)(std::chrono::duration<double,std::milli>(time_cap - time_start).count());
 #endif //USING_USB_CAMERA
         if (src.img.empty()) {
+            fmt::print(fmt::fg(fmt::color::red), "[CAMERA] GetMat false return\n");
 #ifdef SAVE_LOG_ALL
             LOG(ERROR) << "[CAMERA] Get empty image";
 #endif //SAVE_LOG_ALL
@@ -180,15 +181,15 @@ bool consumer(Factory<TaskData> &task_factory, Factory<VisionData> &transmit_fac
     Buff buff;
     auto mode = -1;
     auto last_mode = -1;
+
     while (1) {
         TaskData dst;
         VisionData data;
 
         task_factory.consume(dst);
-        mode = dst.mode;
+//        mode = dst.mode;
 #ifdef DEBUG_WITHOUT_COM
         mode = 1;
-        // dst.mode = mode;
 #endif // DEBUG_WITHOUT_COM
 
 #ifdef SAVE_TRANSMIT_LOG

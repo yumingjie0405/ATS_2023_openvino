@@ -305,7 +305,6 @@ int Autoaim::chooseTargetID(vector<Armor> &armors, int timestamp) {
  */
 bool Autoaim::run(TaskData &src, VisionData &data) {
     auto time_start = std::chrono::steady_clock::now();
-    vector<ArmorObject> objects;
     vector<Armor> armors;
 
     auto input = src.img.clone();
@@ -357,12 +356,13 @@ bool Autoaim::run(TaskData &src, VisionData &data) {
 #endif  //USING_ROI
     auto time_crop = std::chrono::steady_clock::now();
     //若未检测到目标
+    vector<ArmorObject> objects;
     if (!detector.detect(input, objects)) {
 #ifdef SHOW_AIM_CROSS
         line(src.img, Point2f(src.img.size().width / 2, 0), Point2f(src.img.size().width / 2, src.img.size().height),
-             {0, 255, 0}, 1);
+             {125, 55, 110}, 1);
         line(src.img, Point2f(0, src.img.size().height / 2), Point2f(src.img.size().width, src.img.size().height / 2),
-             {0, 255, 0}, 1);
+             {110, 55, 25}, 1);
 #endif //SHOW_AIM_CROSS
 #ifdef SHOW_IMG
         namedWindow("dst", 0);
@@ -525,9 +525,9 @@ bool Autoaim::run(TaskData &src, VisionData &data) {
 
 #ifdef SHOW_AIM_CROSS
         line(src.img, Point2f(src.img.size().width / 2, 0), Point2f(src.img.size().width / 2, src.img.size().height),
-             Scalar(0, 255, 0), 1);
+             Scalar(110, 25, 110), 1);
         line(src.img, Point2f(0, src.img.size().height / 2), Point2f(src.img.size().width, src.img.size().height / 2),
-             Scalar(0, 255, 0), 1);
+             Scalar(110, 25, 110), 1);
 #endif //SHOW_AIM_CROSS
 #ifdef SHOW_IMG
         namedWindow("dst", 0);
@@ -599,20 +599,14 @@ bool Autoaim::run(TaskData &src, VisionData &data) {
             auto candiadates = trackers_map.equal_range(tracker_key);
             //遍历所有同Key预测器，匹配速度最小且更新时间最近的ArmorTracker
             /*
-             * 遍历给定的候选目标范围（candiadates），使用迭代器 iter 指向当前候选目标。
-
-计算时间差 delta_t，它是源数据（src.timestamp）与当前候选目标的最后一个时间戳（(*iter).second.last_timestamp）之差。
-
-计算空间距离差 delta_dist，它是当前装甲（armor）在世界坐标系下的中心点与当前候选目标的最后一个装甲在世界坐标系下的中心点之间的欧几里得距离。
-
-计算速度 velocity，它是 delta_dist 除以 delta_t 的结果，然后乘以 1000（将单位从秒转换为毫秒）。
-
-判断条件：如果当前候选目标的最后一个装甲的感兴趣区域（ROI）包含当前装甲的二维中心点，并且delta_t大于0，则执行以下判断操作：
-a. 如果 delta_dist 小于等于 max_delta_dist 和 min_delta_dist，且 delta_t 小于等于 min_delta_t，那么将当前候选目标视为最佳候选目标（best_candidate），并将 is_best_candidate_exist 设置为 true。
-
-如果存在最佳候选目标（is_best_candidate_exist 为 true），则将 min_delta_dist 赋值给变量 velocity，将 min_delta_t 赋值给变量 delta_t，并根据当前装甲（*armor）和源数据时间戳（src.timestamp）更新 best_candidate 的信息。
-
-如果不存在最佳候选目标且当前装甲的颜色不为2，那么创建一个新的 ArmorTracker 对象 tracker，用当前装甲（*armor）和源数据时间戳（src.timestamp）进行初始化。之后，将这个新的追踪器插入到 trackers_map 中，并在 new_armors_cnt_map 中增加相应的计数。
+             遍历给定的候选目标范围（candiadates），使用迭代器 iter 指向当前候选目标。
+            计算时间差 delta_t，它是源数据（src.timestamp）与当前候选目标的最后一个时间戳（(*iter).second.last_timestamp）之差。
+            计算空间距离差 delta_dist，它是当前装甲（armor）在世界坐标系下的中心点与当前候选目标的最后一个装甲在世界坐标系下的中心点之间的欧几里得距离。
+            计算速度 velocity，它是 delta_dist 除以 delta_t 的结果，然后乘以 1000（将单位从秒转换为毫秒）。
+            判断条件：如果当前候选目标的最后一个装甲的感兴趣区域（ROI）包含当前装甲的二维中心点，并且delta_t大于0，则执行以下判断操作：
+            a. 如果 delta_dist 小于等于 max_delta_dist 和 min_delta_dist，且 delta_t 小于等于 min_delta_t，那么将当前候选目标视为最佳候选目标（best_candidate），并将 is_best_candidate_exist 设置为 true。
+            如果存在最佳候选目标（is_best_candidate_exist 为 true），则将 min_delta_dist 赋值给变量 velocity，将 min_delta_t 赋值给变量 delta_t，并根据当前装甲（*armor）和源数据时间戳（src.timestamp）更新 best_candidate 的信息。
+            如果不存在最佳候选目标且当前装甲的颜色不为2，那么创建一个新的 ArmorTracker 对象 tracker，用当前装甲（*armor）和源数据时间戳（src.timestamp）进行初始化。之后，将这个新的追踪器插入到 trackers_map 中，并在 new_armors_cnt_map 中增加相应的计数。
              *
              */
             for (auto iter = candiadates.first; iter != candiadates.second; ++iter) {
@@ -734,9 +728,9 @@ a. 如果 delta_dist 小于等于 max_delta_dist 和 min_delta_dist，且 delta_
     if (trackers_map.count(target_key) == 0) {
 #ifdef SHOW_AIM_CROSS
         line(src.img, Point2f(src.img.size().width / 2, 0), Point2f(src.img.size().width / 2, src.img.size().height),
-             Scalar(0, 255, 0), 1);
+             Scalar(30, 55, 110), 1);
         line(src.img, Point2f(0, src.img.size().height / 2), Point2f(src.img.size().width, src.img.size().height / 2),
-             Scalar(0, 255, 0), 1);
+             Scalar(30, 55, 110), 1);
 #endif //SHOW_AIM_CROSS
 #ifdef SHOW_IMG
         namedWindow("dst", 0);
@@ -949,9 +943,9 @@ a. 如果 delta_dist 小于等于 max_delta_dist 和 min_delta_dist，且 delta_
     last_armors = armors;
 #ifdef SHOW_AIM_CROSS
     line(src.img, Point2f(src.img.size().width / 2, 0), Point2f(src.img.size().width / 2, src.img.size().height),
-         {0, 255, 0}, 1);
+         {200, 55, 110}, 1);
     line(src.img, Point2f(0, src.img.size().height / 2), Point2f(src.img.size().width, src.img.size().height / 2),
-         {0, 255, 0}, 1);
+         {30, 25, 110}, 1);
 #endif //SHOW_AIM_CROSS
 
 #ifdef SHOW_ALL_ARMOR
@@ -974,8 +968,8 @@ a. 如果 delta_dist 小于等于 max_delta_dist 和 min_delta_dist，且 delta_
 //        for (int i = 0; i < 4; i++)
 //            line(src.img, armor.apex2d[i % 4], armor.apex2d[(i + 1) % 4], {0, 255, 0}, 1);
         putText(src.img, fmt::format("ratio{:.2}", armor.quad_aspect_ratio), armor.apex2d[2], FONT_HERSHEY_SIMPLEX, 1,
-                {255, 100, 255}, 2);
-        rectangle(src.img, armor.roi, {255, 0, 255}, 1);
+                {125, 100, 255}, 2);
+        rectangle(src.img, armor.roi, {100, 0, 255}, 1);
         auto armor_center = coordsolver.reproject(armor.center3d_cam);
         circle(src.img, armor_center, 4, {0, 0, 255}, 2);
     }

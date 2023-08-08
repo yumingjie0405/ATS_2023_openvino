@@ -2,7 +2,7 @@
 //                          FIXME:临场调试选项
 //---------------------------------------------------------------------------//
 
-#define DETECT_RED  //红色检测，不启用默认为蓝色检测
+//#define DETECT_RED  //红色检测，不启用默认为蓝色检测
 
 //#define IGNORE_ENGINEER             //是否忽略工程
 //#define IGNORE_NPC                  //是否忽略建筑物与哨兵
@@ -10,7 +10,7 @@
 //FIXME: RECORD_DATA未完成
 // #define SAVE_VIDEO               // Save video
 // #define RECORD_DATA
-// #define SAVE_LOG_ALL                // Save log
+//#define SAVE_LOG_ALL                // Save log
 
 
 // #TODO: 开启此选项请关闭无串口调试模式
@@ -27,7 +27,7 @@
 // #define USING_USB_CAMERA
 // #define USE_SAVED_DATA
 
-//#define DEBUG_WITHOUT_COM           //无串口调试
+#define DEBUG_WITHOUT_COM           //无串口调试
 //===========================================================================//v 3     
 
 

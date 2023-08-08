@@ -5,7 +5,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++17 -Os -pthread -g")
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++17 -pthread")
 set(OpenCV_DIR /usr/local/lib/cmake/opencv4)
-
 find_package(OpenCV 4.5.0)
 message(STATUS "OpenCV library status:")
 message(STATUS "    config: ${OpenCV_DIR}")
@@ -14,8 +13,8 @@ message(STATUS "    libraries: ${OpenCV_LIBS}")
 message(STATUS "    include path: ${OpenCV_INCLUDE_DIRS}")
 set(CMAKE_PREFIX_PATH /opt/intel/openvino_2021/deployment_tools/inference_engine/share)
 find_package(InferenceEngine REQUIRED)
-# set(CMAKE_PREFIX_PATH /opt/intel/openvino_2021/deployment_tools/ngraph/cmake)
-# find_package(ngraph)
+set(CMAKE_PREFIX_PATH /opt/intel/openvino_2021/deployment_tools/ngraph/cmake)
+find_package(ngraph)
 find_package(Eigen3 REQUIRED)
 # Disable ROS yaml-cpp
 add_definitions(-DUSE_ROS_YAML_CPP=0)
@@ -43,9 +42,7 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(${EIGEN3_INCLUDE_DIRS})
 include_directories(${InferenceEngine_INCLUDE_DIRS})
 include_directories(${YAML_CPP_INCLUDE_DIRS})
-include_directories(
-        ${GLOB_INCLUDE_DIRS}
-)
+include_directories(${GLOB_INCLUDE_DIRS})
 include_directories(${CERES_INCLUDE_DIRS})
 
 add_executable(run
@@ -86,11 +83,9 @@ add_executable(run
         ${PROJECT_SOURCE_DIR}/serial/wt61pc.h
         ${PROJECT_SOURCE_DIR}/serial/CRC_Check.cpp
         ${PROJECT_SOURCE_DIR}/serial/CRC_Check.h
-        autoaim/detector/tensorrt_infer.cpp)
-
+        )
 
 
 target_link_libraries(run ${OpenCV_LIBRARIES} ${InferenceEngine_LIBRARIES} ${Eigen3_LIBRARIES}
-        yaml-cpp gxiapi Ceres::ceres fmt::fmt matplotlib_cpp::matplotlib_cpp ${GLOG_LIBRARIES} ${YAML_CPP_LIBRARIES} )
+        yaml-cpp gxiapi Ceres::ceres fmt::fmt matplotlib_cpp::matplotlib_cpp ${GLOG_LIBRARIES} ${YAML_CPP_LIBRARIES})
 
-# Ceres::ceres

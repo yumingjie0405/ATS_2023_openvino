@@ -389,18 +389,7 @@ bool SerialPort::getColor(unsigned char *data) {
  * @param data 四元数首地址指针
  * @return
  */
-//bool SerialPort::getQuat(unsigned char *data) {
-//    unsigned char *f1 = &data[0];
-//    unsigned char *f2 = &data[4];
-//    unsigned char *f3 = &data[8];
-//    unsigned char *f4 = &data[12];
-//
-//    quat[0] = exchange_data(f1);
-//    quat[1] = exchange_data(f2);
-//    quat[2] = exchange_data(f3);
-//    quat[3] = exchange_data(f4);
-//    return true;
-//}
+
 bool SerialPort::getQuat(unsigned char *data) {
     unsigned char *f1 = &data[0];
     unsigned char *f2 = &data[4];

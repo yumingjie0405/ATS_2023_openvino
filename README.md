@@ -1,12 +1,8 @@
-# TUP-InfantryVision-2022
-沈阳航空航天大学T-UP战队2022赛季步兵视觉识别程序.
-## Author:顾昊 赵梓合
-## Version: V1.1 Beta
-***Per Aspera Ad Astra.***    
-<img src="docs/tup_badge_vision.png" width="200px">
+# ATS2023安徽信息工程学院自瞄代码
 
-## 0.写在前面
-本赛季的视觉程序在研发之处充分考虑到实验室的实际经费和其他资源可支配情况制定了“整体框架不变，小步快跑迭代”的研发思路，并重新设定了本赛季程序的整体框架。程序整体设计目的在于实现稳定可靠的功能的基础上将各模块之间尽可能充分解耦，做到程序使用简单、易于阅读及二次开发。
+
+
+
 
 ## 1.简介
 本程序是一套适用于步兵、英雄、哨兵的通用代码。硬件上我们使用大恒MER-139相机和海康MV-016相机和USB-CDC虚拟串口。在大恒相机+8mm焦距镜头的测试条件下可以对0-7m的目标实现较为准确的识别（若进入手动ROI模式，手动缩小送入网络的区域，可以更进一步的提高识别极限距离至10m左右）。
@@ -70,7 +66,7 @@
     17.main.cpp 程序主文件
     18.README.md 说明文件
     19.WatchDog.sh 自启脚本
-    
+
 ## 4.其他
 ### 更新记录
 V1.1 改进预测器,优化UI 2022.6.3
@@ -86,13 +82,13 @@ V0.5 Beta 完成主程序、串口与自瞄进程. 2021.12.12
 V0.1 Beta 完成自瞄推理部分及粒子滤波器. 2021.11.12
 ### 使用方法
     1.sudo cat /sys/kernel/debug/usb/devices
-
+    
     2.sudo usermod -aG dialout your-username
-
+    
     debug:
-
+    
         ulimit -c
-
+    
         ulimit -c unlimited
 
 输入命令：sudo systemctl set-default multi-user.target 重启reboot
